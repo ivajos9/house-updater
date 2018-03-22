@@ -74,7 +74,7 @@ public class FirebaseServiceImpl implements FirebaseService {
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference("fha/locations-fha");
 
-        DatabaseReference inmoRef = ref.child(location.getName().trim());
+        DatabaseReference inmoRef = ref.child(location.getName().toLowerCase().trim().replace(" ",""));
         inmoRef.setValueAsync(location);
     }
 }
