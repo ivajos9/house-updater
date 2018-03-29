@@ -1,5 +1,7 @@
 package com.idiaz.fha.houseupdater.bo;
 
+import java.util.List;
+
 public class Inmueble {
 
     private String code;
@@ -21,6 +23,8 @@ public class Inmueble {
     private String linkToGo;
 
     private String city;
+
+    private List<String> images;
 
     public String getCode() {
         return code;
@@ -102,6 +106,14 @@ public class Inmueble {
         this.city = city;
     }
 
+    public List<String> getImages() {
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
+    }
+
     @Override
     public String toString() {
         return "Inmueble{" +
@@ -117,4 +129,5 @@ public class Inmueble {
                 ", city='" + city + '\'' +
                 '}';
     }
+
 }

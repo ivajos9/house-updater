@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class ReaderServiceImpl implements ReaderService {
             try {
                 extractFromFHAPage();
                 Thread.sleep(3600000);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(e);
             }
 
@@ -59,9 +59,14 @@ public class ReaderServiceImpl implements ReaderService {
         }
         try {
             doc = Jsoup.parse(url, 1200000);
+            extractAllInformation(doc);
         } catch (IOException e) {
             log.error(e);
         }
+
+    }
+
+    private void extractAllInformation(Document doc){
         List<String> cities = new ArrayList<>();
         for (Element table : doc
                 .select("table")) {
@@ -90,7 +95,7 @@ public class ReaderServiceImpl implements ReaderService {
                                     if (!cities.contains(city)) {
                                         cities.add(city);
                                     }
-                                }catch (Exception e){
+                                } catch (Exception e) {
 
                                 }
                             }
@@ -134,17 +139,18 @@ public class ReaderServiceImpl implements ReaderService {
                 }
             }
         }
-        for (String city:cities) {
+        for (String city : cities) {
             log.info(city);
             Location location = new Location();
             location.setName(city);
             firebaseService.insertToLocations(location);
         }
     }
-
     private Inmueble getDetailforThis(Inmueble inmueble) {
+
         Document doc = null;
         URL url = null;
+
         try {
             url = new URL(inmueble.getLinkToGo());
         } catch (MalformedURLException e) {
@@ -155,6 +161,7 @@ public class ReaderServiceImpl implements ReaderService {
         } catch (IOException e) {
             log.error(e);
         }
+
         Boolean saved = false;
         for (Element table : doc
                 .select("table")) {
@@ -172,7 +179,7 @@ public class ReaderServiceImpl implements ReaderService {
                             for (String pal : vector) {
                                 if (pal.contains("Precio:")) {
                                     String[] v2 = pal.split("Precio:");
-                                    if (v2.length >0){
+                                    if (v2.length > 0) {
                                         inmueble.setEnvironments(v2[0]);
                                     }
                                 }
@@ -182,6 +189,7 @@ public class ReaderServiceImpl implements ReaderService {
                         Boolean fie = false;
                         Boolean ctr = false;
                         String finca = "";
+
                         for (String field : fields) {
                             if (!field.trim().isEmpty()) {
                                 if (!fie) {
@@ -215,6 +223,34 @@ public class ReaderServiceImpl implements ReaderService {
                 }
             }
         }
+
+        try {
+            getImages(doc, inmueble);
+        } catch (Exception e) {
+            log.error("No se pudo extraer imagenes");
+        }
         return inmueble;
     }
+
+    private void getImages(Document doc, Inmueble inmueble) throws IOException {
+
+        inmueble.setImages(new ArrayList<>());
+        Elements img = doc.getElementsByTag("img");
+
+        for (Element el : img) {
+
+            //for each element get the srs url
+            String src = el.absUrl("src");
+            if (src.contains("FotosSlider")) {
+                log.info("src attribute is : " + src);
+                if (src.contains(" ")){
+                    src = src.replace(" ","%20");
+                }
+                inmueble.getImages().add(src);
+            }
+
+
+        }
+    }
+
 }
