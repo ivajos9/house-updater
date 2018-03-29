@@ -146,6 +146,7 @@ public class ReaderServiceImpl implements ReaderService {
             firebaseService.insertToLocations(location);
         }
     }
+
     private Inmueble getDetailforThis(Inmueble inmueble) {
 
         Document doc = null;
