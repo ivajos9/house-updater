@@ -8,4 +8,6 @@ public interface FirebaseService {
     void insertToFirebase(Inmueble inmueble);
 
     void insertToLocations(Location location);
+
+    void insertImageOnFirebaseStorage(Inmueble inmueble, String src, String name);
 }

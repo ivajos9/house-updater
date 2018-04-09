@@ -35,6 +35,9 @@ public class ReaderServiceImpl implements ReaderService {
     @Value("${app.url.cases.trunk}")
     private String trunkUri;
 
+    @Value("${app.folder.saver}")
+    private String folderPath;
+
     @PostConstruct
     private void init() {
         log.info("Extracting from " + fhaURL);
@@ -66,7 +69,7 @@ public class ReaderServiceImpl implements ReaderService {
 
     }
 
-    private void extractAllInformation(Document doc){
+    private void extractAllInformation(Document doc) {
         List<String> cities = new ArrayList<>();
         for (Element table : doc
                 .select("table")) {
@@ -244,14 +247,48 @@ public class ReaderServiceImpl implements ReaderService {
             String src = el.absUrl("src");
             if (src.contains("FotosSlider")) {
                 log.info("src attribute is : " + src);
-                if (src.contains(" ")){
-                    src = src.replace(" ","%20");
+                if (src.contains(" ")) {
+                    src = src.replace(" ", "%20");
                 }
                 inmueble.getImages().add(src);
             }
 
 
         }
+        if (!inmueble.getImages().isEmpty() && inmueble.getImages().size() > 0) {
+            saveImages(inmueble);
+        }
+    }
+
+
+    private void saveImages(Inmueble inmueble) {
+
+        for (String src : inmueble.getImages())
+            //Open a URL Stream
+            try {
+
+                Integer indexname = src.lastIndexOf("/");
+                String name = src.substring(indexname, src.length());
+
+
+                URL url = new URL(src);
+                InputStream in = url.openStream();
+
+                OutputStream out = new BufferedOutputStream(new FileOutputStream(folderPath + name));
+                log.info(folderPath+name);
+
+                for (int b; (b = in.read()) != -1; ) {
+                    out.write(b);
+                }
+                out.close();
+                in.close();
+
+                firebaseService.insertImageOnFirebaseStorage(inmueble,folderPath+name,name);
+            } catch (Exception e) {
+                log.error("Error al guardar foto", e);
+            }
+
+
     }
 
 }
