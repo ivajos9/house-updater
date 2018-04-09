@@ -1,18 +1,12 @@
 package com.idiaz.fha.houseupdater.firebase;
 
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.WriteChannel;
+import com.google.cloud.storage.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.internal.NonNull;
-import com.google.firebase.tasks.OnFailureListener;
-import com.google.firebase.tasks.OnSuccessListener;
 import com.idiaz.fha.houseupdater.bo.Inmueble;
 import com.idiaz.fha.houseupdater.bo.Location;
 import com.idiaz.fha.houseupdater.bs.FirebaseService;
@@ -25,10 +19,8 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.concurrent.ExecutionException;
+import java.io.*;
+import java.nio.ByteBuffer;
 
 @Service("firebaseService")
 public class FirebaseServiceImpl implements FirebaseService {
@@ -38,7 +30,9 @@ public class FirebaseServiceImpl implements FirebaseService {
     private ResourceLoader rl;
 
     @Value("${app.firebase.db.url}")
-    String dbFbUrl;
+    private String dbFbUrl;
+
+    private Storage storage;
 
     @PostConstruct
     private void init() {
@@ -51,6 +45,13 @@ public class FirebaseServiceImpl implements FirebaseService {
                     .build();
 
             FirebaseApp.initializeApp(options);
+
+            Resource resourceS = rl.getResource("classpath:./inmobusinessgt-557bb-firebase-adminsdk-z6wqx-bc1d770bb6.json");
+            InputStream serviceAccountS = resourceS.getInputStream();
+            this.storage = StorageOptions.newBuilder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccountS))
+                    .build()
+                    .getService();
 
         } catch (FileNotFoundException e) {
             log.error(e);
@@ -74,7 +75,44 @@ public class FirebaseServiceImpl implements FirebaseService {
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference("fha/locations-fha");
 
-        DatabaseReference inmoRef = ref.child(location.getName().toLowerCase().trim().replace(" ",""));
+        DatabaseReference inmoRef = ref.child(location.getName().toLowerCase().trim().replace(" ", ""));
         inmoRef.setValueAsync(location);
     }
+
+    @Override
+    public void insertImageOnFirebaseStorage(Inmueble inmueble, String src, String name) {
+
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(new File(src));
+        } catch (FileNotFoundException e) {
+            log.error(e);
+        }
+        BlobInfo blobInfo = BlobInfo.newBuilder("inmobusinessgt-557bb.appspot.com","fha-immo/"+inmueble.getCode()+ name).setContentType("image/jpeg").build();
+        storage.create(blobInfo);
+
+        try (WriteChannel writer = storage.writer(blobInfo)) {
+            byte[] buffer = new byte[1024];
+            int limit;
+            try {
+                while ((limit = inputStream.read(buffer)) >= 0) {
+                    writer.write(ByteBuffer.wrap(buffer, 0, limit));
+                }
+
+            } catch (Exception ex) {
+                log.error(ex);
+            } finally {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    log.error(e);
+                }
+            }
+        } catch (IOException e) {
+            log.error(e);
+        }catch (Exception e){
+            log.error(e);
+        }
+    }
+
 }
