@@ -44,7 +44,7 @@ public class ReaderServiceImpl implements ReaderService {
         while (true) {
             try {
                 extractFromFHAPage();
-                Thread.sleep(3600000);
+                Thread.sleep(28800000);
             } catch (Exception e) {
                 log.error(e);
             }
@@ -240,7 +240,7 @@ public class ReaderServiceImpl implements ReaderService {
 
         inmueble.setImages(new ArrayList<>());
         Elements img = doc.getElementsByTag("img");
-
+        List<String> imagesList = new ArrayList<>();
         for (Element el : img) {
 
             //for each element get the srs url
@@ -250,20 +250,20 @@ public class ReaderServiceImpl implements ReaderService {
                 if (src.contains(" ")) {
                     src = src.replace(" ", "%20");
                 }
-                inmueble.getImages().add(src);
+                imagesList.add(src);
             }
 
 
         }
-        if (!inmueble.getImages().isEmpty() && inmueble.getImages().size() > 0) {
-            saveImages(inmueble);
+        if (!imagesList.isEmpty() && imagesList.size() > 0) {
+            saveImages(inmueble, imagesList);
         }
     }
 
 
-    private void saveImages(Inmueble inmueble) {
+    private void saveImages(Inmueble inmueble, List<String> imagesList) {
 
-        for (String src : inmueble.getImages())
+        for (String src : imagesList)
             //Open a URL Stream
             try {
 
