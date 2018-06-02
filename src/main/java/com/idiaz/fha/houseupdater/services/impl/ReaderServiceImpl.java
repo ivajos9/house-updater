@@ -239,6 +239,7 @@ public class ReaderServiceImpl implements ReaderService {
     private void getImages(Document doc, Inmueble inmueble) throws IOException {
 
         inmueble.setImages(new ArrayList<>());
+        inmueble.setUploadedImg(new ArrayList<>());
         Elements img = doc.getElementsByTag("img");
         List<String> imagesList = new ArrayList<>();
         for (Element el : img) {
@@ -250,6 +251,7 @@ public class ReaderServiceImpl implements ReaderService {
                 if (src.contains(" ")) {
                     src = src.replace(" ", "%20");
                 }
+                inmueble.getImages().add(src);
                 imagesList.add(src);
             }
 
@@ -275,7 +277,7 @@ public class ReaderServiceImpl implements ReaderService {
                 InputStream in = url.openStream();
 
                 OutputStream out = new BufferedOutputStream(new FileOutputStream(folderPath + name));
-                log.info(folderPath+name);
+                log.info(folderPath + name);
 
                 for (int b; (b = in.read()) != -1; ) {
                     out.write(b);
@@ -283,7 +285,7 @@ public class ReaderServiceImpl implements ReaderService {
                 out.close();
                 in.close();
 
-                firebaseService.insertImageOnFirebaseStorage(inmueble,folderPath+name,name);
+                firebaseService.insertImageOnFirebaseStorage(inmueble, folderPath + name, name);
             } catch (Exception e) {
                 log.error("Error al guardar foto", e);
             }

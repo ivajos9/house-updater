@@ -93,7 +93,7 @@ public class FirebaseServiceImpl implements FirebaseService {
 
         BlobInfo blobInfo = BlobInfo.newBuilder("inmobusinessgt-557bb.appspot.com","fha-immo/"+inmueble.getCode()+ name).setContentType("image/jpeg").setAcl(acls).build();
         Blob cloudS = storage.create(blobInfo, inputStream);
-        inmueble.getImages().add(cloudS.getMediaLink());
+        inmueble.getUploadedImg().add(cloudS.getMediaLink());
     }
 
 }

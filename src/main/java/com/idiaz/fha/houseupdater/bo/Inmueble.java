@@ -26,6 +26,8 @@ public class Inmueble {
 
     private List<String> images;
 
+    private List<String> uploadedImg;
+
     public String getCode() {
         return code;
     }
@@ -114,6 +116,14 @@ public class Inmueble {
         this.images = images;
     }
 
+    public List<String> getUploadedImg() {
+        return uploadedImg;
+    }
+
+    public void setUploadedImg(List<String> uploadedImg) {
+        this.uploadedImg = uploadedImg;
+    }
+
     @Override
     public String toString() {
         return "Inmueble{" +
@@ -127,7 +137,8 @@ public class Inmueble {
                 ", fieldArea=" + fieldArea +
                 ", linkToGo='" + linkToGo + '\'' +
                 ", city='" + city + '\'' +
+                ", images=" + images +
+                ", uploadedImg=" + uploadedImg +
                 '}';
     }
-
 }
